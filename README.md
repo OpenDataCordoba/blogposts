@@ -5,4 +5,4 @@ Los datos están disponibles bajo la licencia [Creative Commons Attribution 4.0 
 
 Fecha | Articulo | Carpeta
 ------|----------|--------
-Marzo 06, 2017 |[Historico de Ventas Minoristas para Argentina](http://opendatacordoba.org/blog/) | [historico-ventas-minoristas-argentina](historico-ventas-minoristas-argentina)
+Marzo 06, 2017 |[Historico de Ventas Minoristas para Argentina](http://opendatacordoba.org/blog/historico-de-ventas-minoristas-para-argentina/) | [historico-ventas-minoristas-argentina](historico-ventas-minoristas-argentina)

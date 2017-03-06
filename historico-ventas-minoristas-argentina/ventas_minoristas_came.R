@@ -1,25 +1,18 @@
 library(ggplot2)
 
-ventas <- read.csv("./data/ventas_minoristas_came.csv")
+ventas <- read.csv("ventas_minoristas_came.csv")
 ventas$Mes <- as.Date(ventas$Mes, format="%d-%m-%Y")
 ventas$Variacion.Interanual <- ventas$Variacion.Interanual / 100
-
-# Feo pero comodo
-anotaciones <- data.frame(fecha = "2011-12-10", label="Cristina Fernandez de Kirchner")
-anotaciones <- rbind(anotaciones, data.frame(fecha = "2015-12-10", label="Mauricio Macri"))
-anotaciones$fecha <- as.Date(anotaciones$fecha, format="%Y-%m-%d")
 
 ggplot(ventas, aes(x=Mes, y=Variacion.Interanual)) + 
     geom_col() +
     theme_minimal() + 
     scale_x_date(date_labels = "%Y", date_breaks = "1 year") + 
-    scale_y_continuous(labels=scales::percent) +
+    scale_y_continuous(labels=scales::percent, breaks=seq(-0.2,0.18,.02), minor_breaks = NULL) +
     labs(title = "Ventas Minoristas Argentina",
-         subtitle = "Hist髍ico de la Variaci髇 Interanual de Ventas Minoristas mes a mes seg鷑 CAME.",
-         caption = "Relevamiento: Open Data Cordoba.") +
-    ylab("Variaci髇 Interanual") +
-    xlab("Fecha") +
-    geom_vline(xintercept=as.numeric(anotaciones$fecha), linetype=3) +
-    geom_text(data=anotaciones,mapping=aes(x=fecha, y=-0.1, label=label),
-              angle=90, vjust=-1, size=3.5, fontface='italic')
-    
+         subtitle = "Hist贸rico de la Variaci贸n Interanual de Ventas Minoristas mes a mes seg煤n CAME.",
+         caption = "Relevamiento de Informaci贸n: Open Data C贸rdoba en base a publicaciones de Red CAME.") +
+    ylab("Variaci贸n Interanual") +
+    xlab("Fecha")
+
+ggsave("ventas-minoristas-came.jpg", width = 10, height = 7)

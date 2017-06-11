@@ -1,0 +1,114 @@
+---
+title: "Analisis Letras Folclore"
+author: "Patricio Del Boca"
+date: "9 de junio de 2017"
+output: 
+  html_document:
+    theme: lumen
+---
+
+```{r setup, include=FALSE, message=FALSE}
+library(dplyr)
+library(tidytext)
+library(wordcloud)
+library(RColorBrewer)
+library(ggplot2)
+knitr::opts_chunk$set(echo = TRUE)
+dat <- readr::read_csv("./datosCanciones.csv")
+
+# Un poco de Limpieza Extra: Hay 7 Canciones que tienen 2 canciones adentro
+# http://www.mifolkloreargentino.com.ar/letras-de-canciones-de-la-yunta/al-jardin-de-la-republica
+dat <- dat %>% filter(!grepl("Letra y Música:",letra))
+# TODO: filtrar notas musicales
+```
+
+### Letras del Folklore Argentino: ¿A qué le cantan?
+
+El siguiente es un análisis exploratorio para resolver una curiosidad: ¿A qué le canta el folclore Argentino?. El Objetivo es, inicialmente, extraer las palabras y frases más utilizadas. Luego trataremos de ampliar el análisis tratando de agrupar las canciones en distintas categorías, descubrir temáticas en común, agrupar autores por estilo, etc.
+
+#### Conjunto de Datos
+
+Los datos fueron extraidos de [http://www.mifolkloreargentino.com.ar/](http://www.mifolkloreargentino.com.ar/):
+
+  * Cantidad de Artistas: `r length(unique(dat$artista))`
+  * Cantidad de Canciones: `r nrow(dat)`
+  
+Hay que tener en cuenta que el Universo de canciones a analizar no es exhaustivo, está acotado a lo disponible en la fuente de datos. Otra consideración importante es que si varios artistas cantan la misma canción, las palabras y frases de dicha canción serán contabilizadas todas las veces. Algunos ejemplos de las canciones:
+
+```{r tabla_canciones}
+dat %>%
+  slice(sample(1:nrow(dat), 10)) %>%
+  select(artista, nombre_cancion) %>%
+  head(10)
+```
+
+#### Pre-Análisis
+
+##### ¿Quiénes son los autores con más canciones en el conjunto de datos?
+```{r}
+dat %>% 
+  group_by(artista) %>%
+  summarise(canciones = n()) %>%
+  arrange(desc(canciones)) %>%
+  head(10)
+```
+
+##### ¿Cuál es la canción más repetida en el conjunto de datos?
+```{r}
+dat %>%
+  group_by(nombre_cancion) %>%
+  summarise(cantidad = n()) %>%
+  arrange(desc(cantidad)) %>%
+  head(10)
+```
+
+
+#### ¿Qué palabra es más cantada en el Folclore Argentino?
+```{r grafico_top, fig.height=4, fig.width=8}
+# TidyText no tiene por defecto un diccionario de Stop Words en Español -.-"
+stopWords <- scan("http://www.webmining.cl/wp-content/uploads/2011/03/stopwords.es.txt", character())
+customStopWords <- strsplit("ay am do re rem mi mi7 mim fa sol la la7 lam si si7 vas pa vos bis has estribillo", " ")[[1]]
+
+stopWords <- c(stopWords, customStopWords)
+tidyText <- dat %>%
+  unnest_tokens(palabra, letra) %>%
+  filter(!(palabra %in% stopWords))
+
+top <- tidyText %>%
+  count(palabra, sort = TRUE) %>%
+  head(15)
+
+ggplot(top, aes(x=reorder(palabra, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "15 Palabras más usadas en el Folklore Argentino",
+       subtitle = "El gráfico contabiliza cuántas veces la palabra aparece en la letra de alguna canción. \nAnálisis en base a más de 3600 canciones.",
+       caption = "Fuente: Open Data Córdoba - blog.opendatacordoba.org", 
+       x = "Palabra", y = "Cantidad de veces usada")
+  
+```
+
+Amor es la palabra más cantada... Qué belleza!
+
+```{r}
+wordsCloud <- tidyText %>%
+  count(palabra, sort = TRUE) %>%
+  select(palabra, n) %>%
+  head(50)
+
+wordcloud2::wordcloud2(wordsCloud, minRotation = -pi/6, maxRotation = pi/6)
+```
+
+
+#### ¿En cuántas canciones aparece la palabra amor?
+```{r}
+cancionesAmor <- dat %>% 
+  select(nombre_cancion, letra) %>%
+  distinct() %>% 
+  filter(grepl("amor", letra)) %>% 
+  nrow()
+cancionesAmor
+```
+
+En `r cancionesAmor` canciones aparece la palabra Amor!
